@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use common::*;
-use rustpad_server::{server, ServerConfig};
+use algopad_server::{server, ServerConfig};
 use serde_json::json;
 
 pub mod common;

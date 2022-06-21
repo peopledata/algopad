@@ -5,7 +5,7 @@ use std::time::Duration;
 use anyhow::Result;
 use common::*;
 use operational_transform::OperationSeq;
-use rustpad_server::{
+use algopad_server::{
     database::{Database, PersistedDocument},
     server, ServerConfig,
 };

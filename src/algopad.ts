@@ -1,4 +1,4 @@
-import { OpSeq } from "rustpad-wasm";
+import { OpSeq } from "algopad-wasm";
 import type {
   editor,
   IDisposable,
@@ -6,8 +6,8 @@ import type {
 } from "monaco-editor/esm/vs/editor/editor.api";
 import debounce from "lodash.debounce";
 
-/** Options passed in to the Rustpad constructor. */
-export type RustpadOptions = {
+/** Options passed in to the algopad constructor. */
+export type algopadOptions = {
   readonly uri: string;
   readonly editor: editor.IStandaloneCodeEditor;
   readonly onConnected?: () => unknown;
@@ -24,8 +24,8 @@ export type UserInfo = {
   readonly hue: number;
 };
 
-/** Browser client for Rustpad. */
-class Rustpad {
+/** Browser client for algopad. */
+class algopad {
   private ws?: WebSocket;
   private connecting?: boolean;
   private recentFailures: number = 0;
@@ -52,7 +52,7 @@ class Rustpad {
   private ignoreChanges: boolean = false;
   private oldDecorations: string[] = [];
 
-  constructor(readonly options: RustpadOptions) {
+  constructor(readonly options: algopadOptions) {
     this.model = options.editor.getModel()!;
     this.onChangeHandle = options.editor.onDidChangeModelContent((e) =>
       this.onChange(e)
@@ -85,7 +85,7 @@ class Rustpad {
     );
   }
 
-  /** Destroy this Rustpad instance and close any sockets. */
+  /** Destroy this algopad instance and close any sockets. */
   dispose() {
     window.clearInterval(this.tryConnectId);
     window.clearInterval(this.resetFailuresId);
@@ -504,4 +504,4 @@ function generateCssStyles(hue: number) {
   }
 }
 
-export default Rustpad;
+export default algopad;

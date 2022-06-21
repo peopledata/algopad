@@ -10,12 +10,12 @@ WORKDIR /home/rust/src
 RUN apk --no-cache add curl musl-dev
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 COPY . .
-RUN wasm-pack build --target web rustpad-wasm
+RUN wasm-pack build --target web algopad-wasm
 
 FROM amd64/node:lts-alpine as frontend
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
-COPY --from=wasm /home/rust/src/rustpad-wasm/pkg rustpad-wasm/pkg
+COPY --from=wasm /home/rust/src/algopad-wasm/pkg algopad-wasm/pkg
 RUN npm ci
 COPY . .
 ARG GITHUB_SHA
@@ -24,6 +24,6 @@ RUN npm run build
 
 FROM scratch
 COPY --from=frontend /usr/src/app/dist dist
-COPY --from=backend /home/rust/src/target/release/rustpad-server .
+COPY --from=backend /home/rust/src/target/release/algopad-server .
 USER 1000:1000
-CMD [ "./rustpad-server" ]
+CMD [ "./algopad-server" ]

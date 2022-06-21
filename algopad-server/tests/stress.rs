@@ -6,7 +6,7 @@ use anyhow::{anyhow, Result};
 use common::*;
 use log::info;
 use operational_transform::OperationSeq;
-use rustpad_server::{server, ServerConfig};
+use algopad_server::{server, ServerConfig};
 use serde_json::{json, Value};
 use tokio::time::Instant;
 

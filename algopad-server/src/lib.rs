@@ -1,4 +1,4 @@
-//! Server backend for the Rustpad collaborative text editor.
+//! Server backend for the algopad collaborative text editor.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
@@ -12,11 +12,11 @@ use serde::Serialize;
 use tokio::time::{self, Instant};
 use warp::{filters::BoxedFilter, ws::Ws, Filter, Rejection, Reply};
 
-use crate::{database::Database, rustpad::Rustpad};
+use crate::{database::Database, algopad::Algopad};
 
 pub mod database;
 mod ot;
-mod rustpad;
+mod algopad;
 
 /// An entry stored in the global server map.
 ///
@@ -25,21 +25,21 @@ mod rustpad;
 /// growing without bound.
 struct Document {
     last_accessed: Instant,
-    rustpad: Arc<Rustpad>,
+    algopad: Arc<Algopad>,
 }
 
 impl Document {
-    fn new(rustpad: Arc<Rustpad>) -> Self {
+    fn new(algopad: Arc<Algopad>) -> Self {
         Self {
             last_accessed: Instant::now(),
-            rustpad,
+            algopad,
         }
     }
 }
 
 impl Drop for Document {
     fn drop(&mut self) {
-        self.rustpad.kill();
+        self.algopad.kill();
     }
 }
 
@@ -137,27 +137,27 @@ async fn socket_handler(id: String, ws: Ws, state: ServerState) -> Result<impl R
     let mut entry = match state.documents.entry(id.clone()) {
         Entry::Occupied(e) => e.into_ref(),
         Entry::Vacant(e) => {
-            let rustpad = Arc::new(match &state.database {
-                Some(db) => db.load(&id).await.map(Rustpad::from).unwrap_or_default(),
-                None => Rustpad::default(),
+            let algopad = Arc::new(match &state.database {
+                Some(db) => db.load(&id).await.map(Algopad::from).unwrap_or_default(),
+                None => Algopad::default(),
             });
             if let Some(db) = &state.database {
-                tokio::spawn(persister(id, Arc::clone(&rustpad), db.clone()));
+                tokio::spawn(persister(id, Arc::clone(&algopad), db.clone()));
             }
-            e.insert(Document::new(rustpad))
+            e.insert(Document::new(algopad))
         }
     };
 
     let value = entry.value_mut();
     value.last_accessed = Instant::now();
-    let rustpad = Arc::clone(&value.rustpad);
-    Ok(ws.on_upgrade(|socket| async move { rustpad.on_connection(socket).await }))
+    let algopad = Arc::clone(&value.algopad);
+    Ok(ws.on_upgrade(|socket| async move { algopad.on_connection(socket).await }))
 }
 
 /// Handler for the `/api/text/{id}` endpoint.
 async fn text_handler(id: String, state: ServerState) -> Result<impl Reply, Rejection> {
     Ok(match state.documents.get(&id) {
-        Some(value) => value.rustpad.text(),
+        Some(value) => value.algopad.text(),
         None => {
             if let Some(db) = &state.database {
                 db.load(&id)
@@ -210,14 +210,14 @@ async fn cleaner(state: ServerState, expiry_days: u32) {
 const PERSIST_INTERVAL: Duration = Duration::from_secs(3);
 
 /// Persists changed documents after a fixed time interval.
-async fn persister(id: String, rustpad: Arc<Rustpad>, db: Database) {
+async fn persister(id: String, algopad: Arc<Algopad>, db: Database) {
     let mut last_revision = 0;
-    while !rustpad.killed() {
+    while !algopad.killed() {
         time::sleep(PERSIST_INTERVAL).await;
-        let revision = rustpad.revision();
+        let revision = algopad.revision();
         if revision > last_revision {
             info!("persisting revision {} for id = {}", revision, id);
-            if let Err(e) = db.store(&id, &rustpad.snapshot()).await {
+            if let Err(e) = db.store(&id, &algopad.snapshot()).await {
                 error!("when persisting document {}: {}", id, e);
             }
             last_revision = revision;

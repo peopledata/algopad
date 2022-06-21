@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "rustpad-server",
-    "rustpad-wasm",
+    "algopad-server",
+    "algopad-wasm",
 ]

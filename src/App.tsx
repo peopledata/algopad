@@ -26,10 +26,10 @@ import {
 import useStorage from "use-local-storage-state";
 import Editor from "@monaco-editor/react";
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
-import rustpadRaw from "../rustpad-server/src/rustpad.rs?raw";
+import algopadRaw from "../algopad-server/src/algopad.rs?raw";
 import languages from "./languages.json";
 import animals from "./animals.json";
-import Rustpad, { UserInfo } from "./rustpad";
+import algopad, { UserInfo } from "./algopad";
 import useHash from "./useHash";
 import ConnectionStatus from "./ConnectionStatus";
 import Footer from "./Footer";
@@ -62,7 +62,7 @@ function App() {
   const [hue, setHue] = useStorage("hue", generateHue);
   const [editor, setEditor] = useState<editor.IStandaloneCodeEditor>();
   const [darkMode, setDarkMode] = useStorage("darkMode", () => false);
-  const rustpad = useRef<Rustpad>();
+  const algopad = useRef<algopad>();
   const id = useHash();
 
   useEffect(() => {
@@ -70,7 +70,7 @@ function App() {
       const model = editor.getModel()!;
       model.setValue("");
       model.setEOL(0); // LF
-      rustpad.current = new Rustpad({
+      algopad.current = new algopad({
         uri: getWsUri(id),
         editor,
         onConnected: () => setConnection("connected"),
@@ -92,21 +92,21 @@ function App() {
         onChangeUsers: setUsers,
       });
       return () => {
-        rustpad.current?.dispose();
-        rustpad.current = undefined;
+        algopad.current?.dispose();
+        algopad.current = undefined;
       };
     }
   }, [id, editor, toast, setUsers]);
 
   useEffect(() => {
     if (connection === "connected") {
-      rustpad.current?.setInfo({ name, hue });
+      algopad.current?.setInfo({ name, hue });
     }
   }, [connection, name, hue]);
 
   function handleChangeLanguage(language: string) {
     setLanguage(language);
-    if (rustpad.current?.setLanguage(language)) {
+    if (algopad.current?.setLanguage(language)) {
       toast({
         title: "Language updated",
         description: (
@@ -144,7 +144,7 @@ function App() {
         [
           {
             range: model.getFullModelRange(),
-            text: rustpadRaw,
+            text: algopadRaw,
           },
         ],
         () => null
@@ -176,7 +176,7 @@ function App() {
         fontSize="sm"
         py={0.5}
       >
-        Rustpad
+        algopad
       </Box>
       <Flex flex="1 0" minH={0}>
         <Container
@@ -256,7 +256,7 @@ function App() {
             About
           </Heading>
           <Text fontSize="sm" mb={1.5}>
-            <strong>Rustpad</strong> is an open-source collaborative text editor
+            <strong>algopad</strong> is an open-source collaborative text editor
             based on the <em>operational transformation</em> algorithm.
           </Text>
           <Text fontSize="sm" mb={1.5}>
@@ -268,7 +268,7 @@ function App() {
             <Link
               color="blue.600"
               fontWeight="semibold"
-              href="https://github.com/ekzhang/rustpad"
+              href="https://github.com/ekzhang/algopad"
               isExternal
             >
               GitHub repository

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom";
 import { ChakraProvider } from "@chakra-ui/react";
-import init, { set_panic_hook } from "rustpad-wasm";
+import init, { set_panic_hook } from "algopad-wasm";
 import App from "./App";
 import "./index.css";
 

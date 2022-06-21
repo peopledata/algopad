@@ -1,4 +1,4 @@
-//! Eventually consistent server-side logic for Rustpad.
+//! Eventually consistent server-side logic for algopad.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -15,7 +15,7 @@ use warp::ws::{Message, WebSocket};
 use crate::{database::PersistedDocument, ot::transform_index};
 
 /// The main object representing a collaborative session.
-pub struct Rustpad {
+pub struct Algopad {
     /// State modified by critical sections of the code.
     state: RwLock<State>,
     /// Incremented to obtain unique user IDs.
@@ -97,7 +97,7 @@ impl From<ServerMsg> for Message {
     }
 }
 
-impl Default for Rustpad {
+impl Default for Algopad {
     fn default() -> Self {
         let (tx, _) = broadcast::channel(16);
         Self {
@@ -110,14 +110,14 @@ impl Default for Rustpad {
     }
 }
 
-impl From<PersistedDocument> for Rustpad {
+impl From<PersistedDocument> for Algopad {
     fn from(document: PersistedDocument) -> Self {
         let mut operation = OperationSeq::default();
         operation.insert(&document.text);
 
-        let rustpad = Self::default();
+        let algopad = Self::default();
         {
-            let mut state = rustpad.state.write();
+            let mut state = algopad.state.write();
             state.text = document.text;
             state.language = document.language;
             state.operations.push(UserOperation {
@@ -125,11 +125,11 @@ impl From<PersistedDocument> for Rustpad {
                 operation,
             })
         }
-        rustpad
+        algopad
     }
 }
 
-impl Rustpad {
+impl Algopad {
     /// Handle a connection from a WebSocket.
     pub async fn on_connection(&self, socket: WebSocket) {
         let id = self.count.fetch_add(1, Ordering::Relaxed);
@@ -172,7 +172,7 @@ impl Rustpad {
         self.notify.notify_waiters();
     }
 
-    /// Returns if this Rustpad object has been killed.
+    /// Returns if this algopad object has been killed.
     pub fn killed(&self) -> bool {
         self.killed.load(Ordering::Relaxed)
     }
